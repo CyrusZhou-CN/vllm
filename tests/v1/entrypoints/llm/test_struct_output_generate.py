@@ -15,15 +15,13 @@ from vllm.sampling_params import GuidedDecodingParams, SamplingParams
 
 GUIDED_DECODING_BACKENDS_V1 = ["xgrammar"]
 
-
-@pytest.fixture
-def model_name():
-    return [
-        "Qwen/Qwen2.5-1.5B-Instruct", "mistralai/Ministral-8B-Instruct-2410"
-    ]
+MODEL_NAMES = [
+    "Qwen/Qwen2.5-1.5B-Instruct", "mistralai/Ministral-8B-Instruct-2410"
+]
 
 
 @pytest.mark.skip_global_cleanup
+@pytest.mark.parametrize("model_name", MODEL_NAMES)
 @pytest.mark.parametrize("guided_decoding_backend",
                          GUIDED_DECODING_BACKENDS_V1)
 def test_guided_json_completion(
@@ -61,6 +59,7 @@ def test_guided_json_completion(
 
 
 @pytest.mark.skip_global_cleanup
+@pytest.mark.parametrize("model_name", MODEL_NAMES)
 @pytest.mark.parametrize("guided_decoding_backend",
                          GUIDED_DECODING_BACKENDS_V1)
 def test_guided_json_object(
@@ -99,6 +98,7 @@ def test_guided_json_object(
 
 
 @pytest.mark.skip_global_cleanup
+@pytest.mark.parametrize("model_name", MODEL_NAMES)
 @pytest.mark.parametrize("guided_decoding_backend",
                          GUIDED_DECODING_BACKENDS_V1)
 def test_guided_json_unsupported_schema(
@@ -126,6 +126,7 @@ def test_guided_json_unsupported_schema(
 
 
 @pytest.mark.skip_global_cleanup
+@pytest.mark.parametrize("model_name", MODEL_NAMES)
 @pytest.mark.parametrize("guided_decoding_backend",
                          GUIDED_DECODING_BACKENDS_V1)
 def test_guided_grammar_ebnf(
@@ -168,6 +169,7 @@ def test_guided_grammar_ebnf(
 
 
 @pytest.mark.skip_global_cleanup
+@pytest.mark.parametrize("model_name", MODEL_NAMES)
 @pytest.mark.parametrize("guided_decoding_backend",
                          GUIDED_DECODING_BACKENDS_V1)
 def test_guided_grammar_lark(
@@ -215,6 +217,7 @@ def test_guided_grammar_lark(
 
 
 @pytest.mark.skip_global_cleanup
+@pytest.mark.parametrize("model_name", MODEL_NAMES)
 @pytest.mark.parametrize("guided_decoding_backend",
                          GUIDED_DECODING_BACKENDS_V1)
 def test_guided_grammar_ebnf_invalid(
@@ -242,6 +245,7 @@ def test_guided_grammar_ebnf_invalid(
 
 
 @pytest.mark.skip_global_cleanup
+@pytest.mark.parametrize("model_name", MODEL_NAMES)
 @pytest.mark.parametrize("guided_decoding_backend",
                          GUIDED_DECODING_BACKENDS_V1)
 def test_guided_regex(
@@ -278,6 +282,7 @@ def test_guided_regex(
 
 
 @pytest.mark.skip_global_cleanup
+@pytest.mark.parametrize("model_name", MODEL_NAMES)
 @pytest.mark.parametrize("guided_decoding_backend",
                          GUIDED_DECODING_BACKENDS_V1)
 def test_guided_choice_completion(
