@@ -40,7 +40,8 @@ class StructuredOutputManager:
         tokenizer_group.ping()
 
         tokenizer = tokenizer_group.get_lora_tokenizer(None)
-        self.vocab_size = tokenizer.max_token_id + 1
+        self.mask_size = max(tokenizer.max_token_id,
+                             self.vllm_config.model_config.get_vocab_size())
         if isinstance(tokenizer, MistralTokenizer):
             # NOTE: ideally, xgrammar should handle this accordingly.
             # refer to https://github.com/mlc-ai/xgrammar/blob/d77c0a0173ef14779c918e3be7966ba852f7910f/python/xgrammar/tokenizer_info.py#L98
@@ -66,14 +67,14 @@ class StructuredOutputManager:
                 encoded_vocab=encoded_vocab,
                 # NOTE: https://github.com/mlc-ai/xgrammar/blob/5e141f6ff1ca02bc31f9e512e68b61f2a8ae88e5/tests/python/test_tokenizer_info.py#L43 # noqa: E501
                 vocab_type=xgr.VocabType.BYTE_FALLBACK,
-                vocab_size=self.vocab_size,
+                vocab_size=self.mask_size,
                 stop_token_ids=stop_token_ids,
                 add_prefix_space=True,
             )
         else:
             tokenizer_info = xgr.TokenizerInfo.from_huggingface(
                 tokenizer,
-                vocab_size=self.vocab_size,
+                vocab_size=self.mask_size,
             )
         self.compiler = xgr.GrammarCompiler(tokenizer_info, max_threads=8)
 
@@ -85,7 +86,7 @@ class StructuredOutputManager:
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
         self._grammar_bitmask = xgr.allocate_token_bitmask(
             self.vllm_config.scheduler_config.max_num_seqs,
-            self.vocab_size,
+            self.mask_size,
         )
 
         self.init_complete = True
@@ -133,7 +134,7 @@ class StructuredOutputManager:
 
         return Grammar(
             matcher=xgr.GrammarMatcher(ctx),
-            vocab_size=self.vocab_size,
+            vocab_size=self.mask_size,
             ctx=ctx,
         )
 
