@@ -120,6 +120,7 @@ class EngineArgs:
     block_size: Optional[int] = None
     enable_prefix_caching: Optional[bool] = None
     disable_sliding_window: bool = False
+    disable_cascade_attn: bool = False
     use_v2_block_manager: bool = True
     swap_space: float = 4  # GiB
     cpu_offload_gb: float = 0  # GiB
@@ -1096,6 +1097,16 @@ class EngineArgs:
             "using. This is used to parse the reasoning content into OpenAI "
             "API format. Required for ``--enable-reasoning``.")
 
+        parser.add_argument(
+            "--disable-cascade-attn",
+            action="store_true",
+            default=False,
+            help="Disable cascade attention for V1. While cascade attention "
+            "does not change the mathematical correctness, disabling it "
+            "could be useful for preventing potential numerical issues. "
+            "Note that even if this is set to False, cascade attention will be "
+            "only used when the heuristic tells that it's beneficial.")
+
         return parser
 
     @classmethod
@@ -1141,6 +1152,7 @@ class EngineArgs:
             max_seq_len_to_capture=self.max_seq_len_to_capture,
             max_logprobs=self.max_logprobs,
             disable_sliding_window=self.disable_sliding_window,
+            disable_cascade_attn=self.disable_cascade_attn,
             skip_tokenizer_init=self.skip_tokenizer_init,
             served_model_name=self.served_model_name,
             limit_mm_per_prompt=self.limit_mm_per_prompt,
@@ -1683,7 +1695,7 @@ class EngineArgs:
         # V1 should use the new scheduler by default.
         # Swap it only if this arg is set to the original V0 default
         if self.scheduler_cls == EngineArgs.scheduler_cls:
-            self.scheduler_cls = "vllm.v1.core.scheduler.Scheduler"
+            self.scheduler_cls = "vllm.v1.core.sched.scheduler.Scheduler"
 
         # When no user override, set the default values based on the usage
         # context.
