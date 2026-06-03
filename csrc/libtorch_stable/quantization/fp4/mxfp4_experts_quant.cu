@@ -23,17 +23,18 @@
 #include <cuda_runtime.h>
 #include <cuda_fp8.h>
 
+#include <torch/csrc/stable/library.h>
 #include <torch/csrc/stable/tensor.h>
 #include "libtorch_stable/torch_utils.h"
 #include "libtorch_stable/dispatch_utils.h"
-#include "cuda_vec_utils.cuh"
+#include "../../cuda_vec_utils.cuh"
 #include "cuda_utils.h"
 
 #include "nvfp4_utils.cuh"
 static_assert(CVT_FP4_ELTS_PER_THREAD == 16,
               "MXFP4 experts quant requires PACK16 mode (CUDA >= 12.9)");
 
-#include "launch_bounds_utils.h"
+#include "libtorch_stable/launch_bounds_utils.h"
 
 namespace vllm {
 
@@ -419,4 +420,13 @@ void silu_and_mul_mxfp4_experts_quant(
             output_scale_offset_by_experts.data_ptr(), m_topk, k, n_experts,
             stream);
       });
+}
+
+// Registered here (not torch_bindings.cpp) because VLLM_GPU_FLAGS is applied
+// only under COMPILE_LANGUAGE:CUDA, so ENABLE_NVFP4_SM100 is invisible to
+// .cpp files and cannot gate the registration from there.
+STABLE_TORCH_LIBRARY_IMPL(_C, CUDA, m) {
+  m.impl("mxfp4_experts_quant", TORCH_BOX(&mxfp4_experts_quant));
+  m.impl("silu_and_mul_mxfp4_experts_quant",
+         TORCH_BOX(&silu_and_mul_mxfp4_experts_quant));
 }
